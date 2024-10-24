@@ -1,6 +1,6 @@
 // const series = require('../../data/series.json')
 // cuando termine de reemplazar las ocurrencias de series por Series, borrar la variable de arriba.
-const { Series } = require('../models')
+const { Series, Temporada, Capitulo, Actores } = require('../models')
 const controller = {}
 // controller.series = series  DEPRECATED XD
 
@@ -11,10 +11,32 @@ const getAllSeries = async (req, res)=>{
 }
 controller.getAllSeries = getAllSeries
 
+const getAllSeriesYActores = async(req,res) => {
+    const series = await Series.findAll({order: [['nombre','ASC']],
+        include: [{
+            model: Actores
+        }]
+    },
+    )
+    res.status(200).json(series)
+}
+controller.getAllSeriesYActores = getAllSeriesYActores
+
 const getSerieById= async (req, res)=>{
     const id = req.params.id
     // const serie = series.find( serie => serie.id==id)
-    const serie = await Series.findByPk(id)
+    const serie = await Series.findOne({ 
+        where: {id},
+        //include: 'temporadas'
+        include: {
+            model: Temporada,
+            as: 'temporadas',
+            include:{
+                model: Capitulo,
+                as: 'episodios'
+            }
+        }
+    })
     res.status(200).json(serie)
 }
 controller.getSerieById = getSerieById
@@ -59,5 +81,15 @@ const updateSerie = async (req,res) => {
     res.status(200).json(serieActualizar)
 }
 controller.updateSerie = updateSerie
+
+const addActorById= async (req,res) => {
+    const {id} = req.params // ID SERIE
+    const {actorId} = req.body  // ID ACTOR
+    const serie = await Series.findByPk(id) 
+    const actor = await Actores.findByPk(actorId)
+    const serieActor = await serie.addActores(actor)
+    res.status(200).json(serieActor) 
+}
+controller.addActorById = addActorById 
 
 module.exports = controller
