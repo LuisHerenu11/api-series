@@ -9,8 +9,15 @@ module.exports = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
+    // El segundo atributo de los métodos de relaciones es un objeto para configurar propiedades ejemplo FK.
     static associate(models) {
-      // define association here
+      Series.hasMany(models.Temporada, {
+        foreignKey: 'serieId',
+        as: 'temporadas'
+      }),
+      Series.belongsToMany(models.Actores, {
+        through: 'SerieActores'
+      })  
     }
   }
   Series.init({
